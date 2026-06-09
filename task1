@@ -1,0 +1,112 @@
+# ==============================
+# 📊 EXPLORATORY DATA ANALYSIS
+# ==============================
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# ==============================
+# 0. UPLOAD FILE (COLAB STEP)
+# ==============================
+from google.colab import files
+uploaded = files.upload()
+
+# ==============================
+# 1. LOAD DATA
+# ==============================
+df = pd.read_csv("netflix_titles.csv")
+
+print("\n--- FIRST 5 ROWS ---")
+print(df.head())
+
+# ==============================
+# 2. BASIC INFO
+# ==============================
+print("\n--- SHAPE ---")
+print(df.shape)
+
+print("\n--- INFO ---")
+print(df.info())
+
+print("\n--- STATISTICS ---")
+print(df.describe(include='all'))
+
+# ==============================
+# 3. MISSING VALUES CHECK
+# ==============================
+print("\n--- MISSING VALUES ---")
+print(df.isnull().sum())
+
+# Fill numeric missing values with median
+df = df.fillna(df.median(numeric_only=True))
+
+# Fill categorical missing values with mode
+for col in df.select_dtypes(include="object").columns:
+    df[col] = df[col].fillna(df[col].mode()[0])
+
+# ==============================
+# 4. DUPLICATES
+# ==============================
+print("\n--- DUPLICATES ---")
+print(df.duplicated().sum())
+
+df = df.drop_duplicates()
+
+# ==============================
+# 5. COLUMN NAMES
+# ==============================
+print("\n--- COLUMNS ---")
+print(df.columns)
+
+# ==============================
+# 6. CORRELATION HEATMAP
+# ==============================
+plt.figure(figsize=(10,6))
+sns.heatmap(df.corr(numeric_only=True), annot=True, cmap="coolwarm")
+plt.title("Correlation Heatmap")
+plt.show()
+
+# ==============================
+# 7. HISTOGRAMS
+# ==============================
+df.hist(figsize=(12,10))
+plt.suptitle("Feature Distributions")
+plt.show()
+
+# ==============================
+# 8. BOX PLOTS
+# ==============================
+plt.figure(figsize=(12,6))
+sns.boxplot(data=df.select_dtypes(include=np.number))
+plt.xticks(rotation=90)
+plt.title("Outlier Detection")
+plt.show()
+
+# ==============================
+# 9. PAIRPLOT (NUMERIC ONLY)
+# ==============================
+sns.pairplot(df.select_dtypes(include=np.number))
+plt.show()
+
+# ==============================
+# 10. CATEGORY ANALYSIS
+# ==============================
+cat_cols = df.select_dtypes(include="object").columns
+
+for col in cat_cols:
+    print(f"\n--- VALUE COUNTS: {col} ---")
+    print(df[col].value_counts().head(10))
+
+    plt.figure(figsize=(8,4))
+    sns.countplot(y=df[col], order=df[col].value_counts().index[:10])
+    plt.title(f"Top 10 values of {col}")
+    plt.show()
+
+# ==============================
+# 11. SAVE CLEANED DATA
+# ==============================
+df.to_csv("cleaned_netflix_titles.csv", index=False)
+
+print("\n✅ EDA COMPLETE. Cleaned dataset saved as 'cleaned_netflix_titles.csv'")
